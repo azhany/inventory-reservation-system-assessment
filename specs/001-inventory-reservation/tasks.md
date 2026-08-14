@@ -48,31 +48,31 @@ Tasks are ordered to validate the hardest requirement—concurrency—before opt
 
 ## Phase 5 — Reservation lifecycle
 
-- [ ] **T050** Implement reservation lookup.
-- [ ] **T051** Implement confirm transaction.
-- [ ] **T052** Move one unit from reserved to sold on confirmation.
-- [ ] **T053** Implement cancel transaction.
-- [ ] **T054** Release reserved stock on cancellation.
-- [ ] **T055** Reject transitions from terminal states.
-- [ ] **T056** Add lifecycle integration tests.
+- [x] **T050** Implement reservation lookup.
+- [x] **T051** Implement confirm transaction.
+- [x] **T052** Move one unit from reserved to sold on confirmation.
+- [x] **T053** Implement cancel transaction.
+- [x] **T054** Release reserved stock on cancellation.
+- [x] **T055** Reject transitions from terminal states.
+- [x] **T056** Add lifecycle integration tests.
 
 ## Phase 6 — Expiry
 
-- [ ] **T060** Implement stale active reservation detection.
-- [ ] **T061** Implement lazy expiry inside the product inventory lock.
-- [ ] **T062** Release reserved stock when expiring a reservation.
-- [ ] **T063** Add periodic background expiry worker.
-- [ ] **T064** Make TTL configurable in tests while defaulting to two minutes.
-- [ ] **T065** Add expiry integration tests.
+- [x] **T060** Implement stale active reservation detection.
+- [x] **T061** Implement lazy expiry inside the product inventory lock.
+- [x] **T062** Release reserved stock when expiring a reservation.
+- [x] **T063** Add periodic background expiry worker.
+- [x] **T064** Make TTL configurable in tests while defaulting to two minutes.
+- [x] **T065** Add expiry integration tests.
 
 ## Phase 7 — HTTP contract
 
-- [ ] **T070** Implement inventory GET endpoint.
-- [ ] **T071** Implement reserve POST endpoint.
-- [ ] **T072** Implement reservation GET endpoint.
-- [ ] **T073** Implement confirm POST endpoint.
-- [ ] **T074** Implement cancel POST endpoint.
-- [ ] **T075** Validate request/response behavior against `openapi.yaml`.
+- [x] **T070** Implement inventory GET endpoint.
+- [x] **T071** Implement reserve POST endpoint.
+- [x] **T072** Implement reservation GET endpoint.
+- [x] **T073** Implement confirm POST endpoint.
+- [x] **T074** Implement cancel POST endpoint.
+- [x] **T075** Validate request/response behavior against `openapi.yaml`.
 
 ## Phase 8 — Documentation and reviewability
 

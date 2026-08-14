@@ -1,10 +1,16 @@
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify';
 
+import {
+  type ApiRouteDependencies,
+  registerApiRoutes,
+} from './http/api-routes.js';
 import { ApplicationError, toErrorResponse } from './http/errors.js';
 
-type AppDependencies = Readonly<{
-  checkDatabase: () => Promise<boolean>;
-}>;
+export type AppDependencies = Readonly<
+  ApiRouteDependencies & {
+    checkDatabase: () => Promise<boolean>;
+  }
+>;
 
 export function buildApp(
   dependencies: AppDependencies,
@@ -42,6 +48,8 @@ export function buildApp(
 
     return { status: 'ready' };
   });
+
+  registerApiRoutes(app, dependencies);
 
   return app;
 }

@@ -8,9 +8,9 @@ import { runMigrations } from '../../apps/api/src/db/migrations.js';
 import { findInventoryByProductId } from '../../apps/api/src/modules/inventory/inventory-repository.js';
 import { PostgresReservationPersistence } from '../../apps/api/src/modules/reservation/postgres-reservation-persistence.js';
 import {
-  createReserveInventory,
   OutOfStockError,
-} from '../../apps/api/src/modules/reservation/reserve-inventory.js';
+  ReservationService,
+} from '../../apps/api/src/modules/reservation/reservation-service.js';
 import { seedProduct } from '../support/seed-product.js';
 
 const databaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
@@ -40,13 +40,13 @@ describeWithDatabase('reserve inventory', () => {
     const product = await seedProduct(pool, { totalStock: 1 });
     const userId = randomUUID();
     const reservationId = randomUUID();
-    const reserveInventory = createReserveInventory({
+    const reservations = new ReservationService({
       clock: { now: () => now },
       generateReservationId: () => reservationId,
       persistence: new PostgresReservationPersistence(pool),
     });
 
-    const reservation = await reserveInventory({ productId: product.id, userId });
+    const reservation = await reservations.reserve({ productId: product.id, userId });
 
     expect(reservation).toEqual({
       cancelledAt: null,
@@ -84,13 +84,13 @@ describeWithDatabase('reserve inventory', () => {
 
   it('rejects unavailable inventory without creating a reservation or changing counters', async () => {
     const product = await seedProduct(pool, { totalStock: 0 });
-    const reserveInventory = createReserveInventory({
+    const reservations = new ReservationService({
       clock: { now: () => now },
       generateReservationId: randomUUID,
       persistence: new PostgresReservationPersistence(pool),
     });
 
-    await expect(reserveInventory({
+    await expect(reservations.reserve({
       productId: product.id,
       userId: randomUUID(),
     })).rejects.toBeInstanceOf(OutOfStockError);

@@ -4,13 +4,26 @@ import { buildApp } from './app.js';
 
 const apps: ReturnType<typeof buildApp>[] = [];
 
+function buildTestApp(checkDatabase: () => Promise<boolean>): ReturnType<typeof buildApp> {
+  return buildApp({
+    checkDatabase,
+    findInventoryByProductId: async () => null,
+    reservations: {
+      cancel: async () => { throw new Error('Unexpected cancel call.'); },
+      confirm: async () => { throw new Error('Unexpected confirm call.'); },
+      get: async () => null,
+      reserve: async () => { throw new Error('Unexpected reserve call.'); },
+    },
+  });
+}
+
 afterEach(async () => {
   await Promise.all(apps.splice(0).map(async (app) => app.close()));
 });
 
 describe('health endpoints', () => {
   it('reports liveness without requiring the database', async () => {
-    const app = buildApp({ checkDatabase: async () => false });
+    const app = buildTestApp(async () => false);
     apps.push(app);
 
     const response = await app.inject({ method: 'GET', url: '/health/live' });
@@ -20,7 +33,7 @@ describe('health endpoints', () => {
   });
 
   it('reports readiness when PostgreSQL is reachable', async () => {
-    const app = buildApp({ checkDatabase: async () => true });
+    const app = buildTestApp(async () => true);
     apps.push(app);
 
     const response = await app.inject({ method: 'GET', url: '/health/ready' });
@@ -30,7 +43,7 @@ describe('health endpoints', () => {
   });
 
   it('returns the shared error contract while PostgreSQL is unavailable', async () => {
-    const app = buildApp({ checkDatabase: async () => false });
+    const app = buildTestApp(async () => false);
     apps.push(app);
 
     const response = await app.inject({ method: 'GET', url: '/health/ready' });
@@ -45,7 +58,7 @@ describe('health endpoints', () => {
 
 describe('unknown routes', () => {
   it('uses the shared not-found response contract', async () => {
-    const app = buildApp({ checkDatabase: async () => true });
+    const app = buildTestApp(async () => true);
     apps.push(app);
 
     const response = await app.inject({ method: 'GET', url: '/does-not-exist' });

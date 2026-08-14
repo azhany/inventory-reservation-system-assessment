@@ -8,9 +8,9 @@ import { runMigrations } from '../../apps/api/src/db/migrations.js';
 import { findInventoryByProductId } from '../../apps/api/src/modules/inventory/inventory-repository.js';
 import { PostgresReservationPersistence } from '../../apps/api/src/modules/reservation/postgres-reservation-persistence.js';
 import {
-  createReserveInventory,
   OutOfStockError,
-} from '../../apps/api/src/modules/reservation/reserve-inventory.js';
+  ReservationService,
+} from '../../apps/api/src/modules/reservation/reservation-service.js';
 import { seedProduct } from '../support/seed-product.js';
 
 const databaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
@@ -37,14 +37,14 @@ describeWithDatabase('reservation concurrency', () => {
 
   it('allows exactly one of 500 parallel attempts to reserve the final item', async () => {
     const product = await seedProduct(pool, { totalStock: 1 });
-    const reserveInventory = createReserveInventory({
+    const reservations = new ReservationService({
       clock: { now: () => new Date('2026-08-12T00:00:00.000Z') },
       generateReservationId: randomUUID,
       persistence: new PostgresReservationPersistence(pool),
     });
 
     const attempts = Array.from({ length: 500 }, () =>
-      reserveInventory({ productId: product.id, userId: randomUUID() }));
+      reservations.reserve({ productId: product.id, userId: randomUUID() }));
     const results = await Promise.allSettled(attempts);
     const successes = results.filter((result) => result.status === 'fulfilled');
     const failures = results.filter((result) => result.status === 'rejected');
@@ -97,13 +97,13 @@ describeWithDatabase('reservation concurrency', () => {
         'SELECT product_id FROM inventories WHERE product_id = $1 FOR UPDATE',
         [product.id],
       );
-      const reserveInventory = createReserveInventory({
+      const reservations = new ReservationService({
         clock: { now: () => new Date('2026-08-12T00:00:00.000Z') },
         generateReservationId: randomUUID,
         persistence: new PostgresReservationPersistence(lockCheckingPool),
       });
 
-      await expect(reserveInventory({
+      await expect(reservations.reserve({
         productId: product.id,
         userId: randomUUID(),
       })).rejects.toMatchObject({ code: '55P03' });
