@@ -20,6 +20,14 @@ cleanup() {
 trap cleanup EXIT HUP INT TERM
 
 compose build production-api
+compose run --rm --no-deps production-api sh -c '
+  for package in typescript vitest vite react react-dom; do
+    if [ -e "node_modules/$package" ]; then
+      echo "Unexpected non-API runtime package: $package" >&2
+      exit 1
+    fi
+  done
+'
 compose up --detach --wait test-database
 compose run --rm production-api node apps/api/dist/db/migrate-cli.js
 compose up --detach --wait production-api

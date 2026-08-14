@@ -8,15 +8,19 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace @inventory/api",
+    "build": "npm run build --workspaces --if-present",
     "db:migrate": "npm run db:migrate --workspace @inventory/api",
     "dev": "npm run dev --workspace @inventory/api",
+    "dev:web": "npm run dev --workspace @inventory/web",
     "lint": "eslint .",
     "start": "npm run start --workspace @inventory/api",
-    "test": "vitest run --config vitest.config.ts",
+    "test": "npm run test:unit && npm run test:web",
     "test:all": "npm test && npm run test:integration",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:web": "vitest run --config apps/web/vitest.config.ts",
+    "typecheck": "npm run typecheck:api && npm run typecheck --workspace @inventory/web",
+    "typecheck:api": "tsc --noEmit -p tsconfig.json"
   },
   "engines": {
     "node": ">=24.0.0"

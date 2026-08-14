@@ -76,31 +76,31 @@ Tasks are ordered to validate the hardest requirement—concurrency—before opt
 
 ## Phase 8 — Documentation and reviewability
 
-- [ ] **T080** Document the row-lock strategy in README.
-- [ ] **T081** Explain why an in-process mutex alone is insufficient for multiple Node.js instances.
-- [ ] **T082** Document the two-minute expiry behavior.
-- [ ] **T083** Document how to run unit, integration, and concurrency tests.
-- [ ] **T084** Add a short architecture diagram.
-- [ ] **T085** Document the clean-checkout Docker workflow for development and isolated testing.
-- [ ] **T086** Document how to build, configure, migrate, health-check, and run the production image.
+- [x] **T080** Document the row-lock strategy in README.
+- [x] **T081** Explain why an in-process mutex alone is insufficient for multiple Node.js instances.
+- [x] **T082** Document the two-minute expiry behavior.
+- [x] **T083** Document how to run unit, integration, and concurrency tests.
+- [x] **T084** Add a short architecture diagram.
+- [x] **T085** Document the clean-checkout Docker workflow for development and isolated testing.
+- [x] **T086** Document how to build, configure, migrate, health-check, and run the production image.
 
 ## Phase 9 — Optional React demo
 
-- [ ] **T090** Initialize React + TypeScript app.
-- [ ] **T091** Add inventory summary.
-- [ ] **T092** Add reserve action.
-- [ ] **T093** Add active reservation countdown.
-- [ ] **T094** Add confirm/cancel actions.
-- [ ] **T095** Display terminal reservation state.
+- [x] **T090** Initialize React + TypeScript app.
+- [x] **T091** Add inventory summary.
+- [x] **T092** Add reserve action.
+- [x] **T093** Add active reservation countdown.
+- [x] **T094** Add confirm/cancel actions.
+- [x] **T095** Display terminal reservation state.
 
 ## Final verification
 
-- [ ] **T100** All unit tests pass.
-- [ ] **T101** All integration tests pass.
-- [ ] **T102** 500-request concurrency acceptance test passes.
-- [ ] **T103** Expiry acceptance test passes.
-- [ ] **T104** Database invariants remain valid after every suite.
-- [ ] **T105** Core backend can be reviewed and run without the React app.
-- [ ] **T106** Clean-checkout development startup succeeds through the documented Docker Compose command.
-- [ ] **T107** Containerized unit, integration, and concurrency test workflows pass against isolated PostgreSQL infrastructure.
-- [ ] **T108** Production image builds without development dependencies, runs as non-root, and passes its health check.
+- [x] **T100** All unit tests pass.
+- [x] **T101** All integration tests pass.
+- [x] **T102** 500-request concurrency acceptance test passes.
+- [x] **T103** Expiry acceptance test passes.
+- [x] **T104** Database invariants remain valid after every suite.
+- [x] **T105** Core backend can be reviewed and run without the React app.
+- [x] **T106** Clean-checkout development startup succeeds through the documented Docker Compose command.
+- [x] **T107** Containerized unit, integration, and concurrency test workflows pass against isolated PostgreSQL infrastructure.
+- [x] **T108** Production image builds without development dependencies, runs as non-root, and passes its health check.
