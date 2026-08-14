@@ -1,0 +1,43 @@
+services:
+  test-database:
+    image: postgres:17-alpine3.22
+    environment:
+      POSTGRES_DB: inventory_test
+      POSTGRES_PASSWORD: inventory_test_only
+      POSTGRES_USER: inventory_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  test:
+    build:
+      context: .
+      target: test
+    command: ["sh", "-c", "npm run db:migrate && npm run test:all"]
+    depends_on:
+      test-database:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://inventory_test:inventory_test_only@test-database:5432/inventory_test
+      NODE_ENV: test
+      TEST_DATABASE_URL: postgresql://inventory_test:inventory_test_only@test-database:5432/inventory_test
+    init: true
+
+  production-api:
+    build:
+      context: .
+      target: production
+    depends_on:
+      test-database:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://inventory_test:inventory_test_only@test-database:5432/inventory_test
+      LOG_LEVEL: info
+      NODE_ENV: production
+      PORT: 3000
+    init: true
+    profiles: ["production-validation"]

@@ -4,15 +4,15 @@ Tasks are ordered to validate the hardest requirement—concurrency—before opt
 
 ## Phase 0 — Project setup
 
-- [ ] **T001** Initialize TypeScript workspace.
-- [ ] **T002** Create `apps/api` Node.js service.
-- [ ] **T003** Add PostgreSQL connection and migration runner.
-- [ ] **T004** Add test environment with isolated PostgreSQL database.
-- [ ] **T005** Add shared error and validation conventions.
-- [ ] **T006** Add a multi-stage Dockerfile with development, test, and non-root production targets.
-- [ ] **T007** Add Docker Compose development orchestration for the API and health-checked PostgreSQL with a persistent development volume.
-- [ ] **T008** Add a Docker Compose test workflow with disposable, isolated PostgreSQL infrastructure and propagated test exit codes.
-- [ ] **T009** Add `.dockerignore`, secret-free environment templates, readiness checks, and an explicit containerized migration command.
+- [x] **T001** Initialize TypeScript workspace.
+- [x] **T002** Create `apps/api` Node.js service.
+- [x] **T003** Add PostgreSQL connection and migration runner.
+- [x] **T004** Add test environment with isolated PostgreSQL database.
+- [x] **T005** Add shared error and validation conventions.
+- [x] **T006** Add a multi-stage Dockerfile with development, test, and non-root production targets.
+- [x] **T007** Add Docker Compose development orchestration for the API and health-checked PostgreSQL with a persistent development volume.
+- [x] **T008** Add a Docker Compose test workflow with disposable, isolated PostgreSQL infrastructure and propagated test exit codes.
+- [x] **T009** Add `.dockerignore`, secret-free environment templates, readiness checks, and an explicit containerized migration command.
 
 ## Phase 1 — Relational model
 
