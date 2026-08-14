@@ -24,10 +24,10 @@ Tasks are ordered to validate the hardest requirement—concurrency—before opt
 
 ## Phase 2 — Inventory domain
 
-- [ ] **T020** Implement inventory read model.
-- [ ] **T021** Implement `availableStock = total - sold - reserved` calculation.
-- [ ] **T022** Implement repository method to lock inventory row with `FOR UPDATE`.
-- [ ] **T023** Add invariant-focused unit tests.
+- [x] **T020** Implement inventory read model.
+- [x] **T021** Implement `availableStock = total - sold - reserved` calculation.
+- [x] **T022** Implement repository method to lock inventory row with `FOR UPDATE`.
+- [x] **T023** Add invariant-focused unit tests.
 
 ## Phase 3 — Basic reservation
 
