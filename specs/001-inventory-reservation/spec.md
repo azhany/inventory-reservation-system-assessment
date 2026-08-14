@@ -44,6 +44,9 @@ Reservations use the source-defined states:
 ### G-005 — Maintain consistent state
 Reservation state changes and inventory counters must commit atomically.
 
+### G-006 — Provide reproducible environments
+The core backend must use Docker as its supported infrastructure setup for development, database-backed testing, and production deployment builds so that the same application and PostgreSQL dependencies can be reproduced from a clean checkout.
+
 ---
 
 ## 3. Non-Goals
@@ -292,7 +295,58 @@ Where both inventory and reservation rows are locked, the implementation should 
 
 ---
 
-## 10. Acceptance Criteria
+## 10. Containerization Requirements
+
+These are repository delivery requirements added for this project. They do not change the source-derived reservation business behavior.
+
+### CR-001 — Containerized from initial setup
+
+Containerization must be implemented during project setup, before feature phases depend on manually installed infrastructure. The repository must include:
+
+- a version-controlled Dockerfile with separate development/test and production build concerns,
+- version-controlled Docker Compose configuration for local orchestration,
+- a `.dockerignore`, and
+- documented environment-variable templates that contain no secrets.
+
+### CR-002 — Development environment
+
+From a clean checkout, a documented Docker Compose command must build and start the core API and PostgreSQL dependencies without requiring a host-installed Node.js or PostgreSQL runtime. The development setup must provide:
+
+- source-mounted or otherwise rebuildable application code,
+- a persistent development database volume,
+- service health checks and readiness-aware startup, and
+- an explicit, documented migration command or migration service.
+
+Host-native tooling may remain available as an optional convenience, but it is not the only supported development path.
+
+### CR-003 — Test environment
+
+Unit, integration, and concurrency suites must be runnable through documented Docker commands. Database-backed tests must use a real, isolated PostgreSQL test database and must not share data or persistent volumes with development or production environments.
+
+The containerized test workflow must propagate the test process exit code and clean up disposable test infrastructure after execution. It must not serialize or weaken the 500-request concurrency acceptance test.
+
+### CR-004 — Deployment image
+
+The core API must produce a production-ready container image from the same version-controlled Dockerfile. The production image must:
+
+- use a multi-stage build or equivalent separation so build tooling and development dependencies are excluded from the runtime image,
+- run as a non-root user,
+- use environment-based configuration without embedding secrets,
+- expose a health check suitable for deployment orchestration,
+- start the API independently of schema migration execution, and
+- handle process termination signals gracefully.
+
+Database migrations must be runnable as an explicit release/deployment step using the same application image or a dedicated migration target. Application startup must not allow multiple replicas to race an implicit migration.
+
+### CR-005 — Reproducible dependencies
+
+Node.js and PostgreSQL container images must use intentional, reviewable version tags rather than floating `latest` tags. Dependency installation inside image builds must use the repository lockfile.
+
+If the optional React demo becomes deployable scope, it must also have a documented production container build or be included deliberately in another production image.
+
+---
+
+## 11. Acceptance Criteria
 
 ### AC-001 — Basic reservation success
 **Given** a product with total stock `1`, sold stock `0`, and reserved stock `0`  
@@ -355,9 +409,24 @@ sold_stock + reserved_stock <= total_stock
 
 must be true.
 
+### AC-009 — Reproducible container workflows
+
+**Given** a clean checkout with Docker and Docker Compose available
+**When** the documented development command is run
+**Then** the API and a healthy PostgreSQL dependency start successfully
+**And** migrations can be applied through the documented container workflow.
+
+**When** the documented containerized test command is run
+**Then** unit, integration, and 500-request concurrency tests execute against isolated test infrastructure
+**And** the command returns a non-zero status if any test fails.
+
+**When** the production image is built and started with valid runtime configuration
+**Then** it starts as a non-root process
+**And** its health check reports readiness without requiring development dependencies in the runtime image.
+
 ---
 
-## 11. Evaluation Mapping
+## 12. Evaluation Mapping
 
 The source evaluation criteria map to this spec as follows:
 
@@ -368,10 +437,11 @@ The source evaluation criteria map to this spec as follows:
 | Expiry logic | FR-006–FR-008, AC-005 |
 | Code quality | plan.md architecture and task boundaries |
 | Clear locking strategy explanation | Section 9 |
+| Reproducible delivery environments | G-006, CR-001–CR-005, AC-009 |
 
 ---
 
-## 12. React Demo Scope — Optional
+## 13. React Demo Scope — Optional
 
 Because the preferred stack includes React, an optional demo client may provide:
 
@@ -386,9 +456,9 @@ The concurrency acceptance test should remain an automated backend/integration t
 
 ---
 
-## 13. Assumptions Added for Executability
+## 14. Assumptions Added for Executability
 
-The following are proposed decisions because the source challenge does not specify them:
+The following are repository-defined decisions because the source challenge does not specify them:
 
 - PostgreSQL is the relational database.
 - Each reservation is for exactly one item.
@@ -396,5 +466,6 @@ The following are proposed decisions because the source challenge does not speci
 - `userId` is an opaque UUID; authentication is out of scope.
 - Confirming or cancelling an expired/terminal reservation returns a conflict response.
 - Lazy expiry is used to guarantee correctness independent of the expiry worker.
+- Docker is the supported infrastructure path for development, database-backed testing, and production deployment builds.
 
-These assumptions should be changed if the evaluator provides different constraints.
+Source-derived assumptions should be changed if the evaluator provides different constraints. Containerization remains an explicit repository delivery requirement unless that requirement is intentionally revised.

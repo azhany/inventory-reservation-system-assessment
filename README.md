@@ -2,6 +2,8 @@
 
 This pack is a spec-driven development structure using a proposed TypeScript/Node.js/PostgreSQL backend and an optional React demo UI.
 
+The core backend must be containerized from project setup onward. Docker is the supported infrastructure entry point for development, database-backed testing, and production deployment builds.
+
 ## Structure
 
 ```text
@@ -16,3 +18,5 @@ specs/001-inventory-reservation/
 ## Important scope note
 
 The source challenge is backend-focused. React, PostgreSQL, HTTP status semantics, and several implementation details are proposed here to make the requirements executable as a modern spec-driven project. They are not stated by the original challenge unless explicitly marked as source-derived.
+
+Containerization is an explicit repository delivery requirement. It is not presented as a business requirement from the source challenge.

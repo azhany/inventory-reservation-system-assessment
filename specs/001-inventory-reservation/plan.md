@@ -34,7 +34,12 @@ PostgreSQL
 - PostgreSQL
 - SQL migrations kept in source control
 
-The source challenge does not mandate these libraries. They are selected to keep the concurrency mechanism explicit and easy to explain during review.
+**Infrastructure and delivery**
+- Docker Engine
+- Docker Compose for development and test orchestration
+- Multi-stage production image for the core API
+
+The source challenge does not mandate these technology choices. They are selected to keep the concurrency mechanism explicit, make each environment reproducible, and keep the implementation easy to review.
 
 ---
 
@@ -63,9 +68,32 @@ inventory-reservation/
 ├── tests/
 │   ├── integration/
 │   └── concurrency/
+├── Dockerfile
+├── compose.yaml
+├── compose.test.yaml
+├── .dockerignore
+├── .env.example
 ├── package.json
 └── README.md
 ```
+
+### Container strategy
+
+Containerization is part of Phase 0 rather than a packaging task deferred until implementation is complete.
+
+The root Dockerfile should provide intentional targets for:
+
+- development, with the full toolchain required for local iteration,
+- test, with the test runner and compiled/runtime dependencies required by all suites, and
+- production, with only the built API and production dependencies.
+
+`compose.yaml` orchestrates the API and a health-checked PostgreSQL service for development. It may use bind mounts and a named database volume for local iteration.
+
+`compose.test.yaml` orchestrates the test runner and a separate PostgreSQL service. Its database state must be disposable and isolated from development. The test service must wait for database readiness, apply migrations, execute the suites, and return their exit status.
+
+The production image is the deployment artifact. Production orchestration is platform-specific and does not require Docker Compose, but the image contract must remain portable: runtime configuration comes from environment variables, secrets are injected externally, the process runs as a non-root user, and a health endpoint reports readiness.
+
+Migrations are an explicit command/release step using the application image or a dedicated image target. They must not run implicitly in every API replica at startup.
 
 ---
 
@@ -276,6 +304,9 @@ The core submission is complete when:
 - confirmed purchases are terminal,
 - database invariants remain valid,
 - the README clearly explains the locking strategy,
-- tests can be run with one documented command.
+- development infrastructure can be started from a clean checkout with one documented Docker Compose command,
+- all tests can be run against isolated infrastructure with one documented Docker command,
+- the production image builds successfully and runs as a non-root process,
+- container health checks and the explicit migration workflow are documented.
 
 The React demo is bonus scope and should not delay the backend definition of done.

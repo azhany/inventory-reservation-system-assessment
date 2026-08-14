@@ -9,6 +9,10 @@ Tasks are ordered to validate the hardest requirement—concurrency—before opt
 - [ ] **T003** Add PostgreSQL connection and migration runner.
 - [ ] **T004** Add test environment with isolated PostgreSQL database.
 - [ ] **T005** Add shared error and validation conventions.
+- [ ] **T006** Add a multi-stage Dockerfile with development, test, and non-root production targets.
+- [ ] **T007** Add Docker Compose development orchestration for the API and health-checked PostgreSQL with a persistent development volume.
+- [ ] **T008** Add a Docker Compose test workflow with disposable, isolated PostgreSQL infrastructure and propagated test exit codes.
+- [ ] **T009** Add `.dockerignore`, secret-free environment templates, readiness checks, and an explicit containerized migration command.
 
 ## Phase 1 — Relational model
 
@@ -77,6 +81,8 @@ Tasks are ordered to validate the hardest requirement—concurrency—before opt
 - [ ] **T082** Document the two-minute expiry behavior.
 - [ ] **T083** Document how to run unit, integration, and concurrency tests.
 - [ ] **T084** Add a short architecture diagram.
+- [ ] **T085** Document the clean-checkout Docker workflow for development and isolated testing.
+- [ ] **T086** Document how to build, configure, migrate, health-check, and run the production image.
 
 ## Phase 9 — Optional React demo
 
@@ -95,3 +101,6 @@ Tasks are ordered to validate the hardest requirement—concurrency—before opt
 - [ ] **T103** Expiry acceptance test passes.
 - [ ] **T104** Database invariants remain valid after every suite.
 - [ ] **T105** Core backend can be reviewed and run without the React app.
+- [ ] **T106** Clean-checkout development startup succeeds through the documented Docker Compose command.
+- [ ] **T107** Containerized unit, integration, and concurrency test workflows pass against isolated PostgreSQL infrastructure.
+- [ ] **T108** Production image builds without development dependencies, runs as non-root, and passes its health check.
