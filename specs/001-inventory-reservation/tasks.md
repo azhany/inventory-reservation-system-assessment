@@ -31,18 +31,18 @@ Tasks are ordered to validate the hardest requirement—concurrency—before opt
 
 ## Phase 3 — Basic reservation
 
-- [ ] **T030** Implement reserve transaction.
-- [ ] **T031** Reject reservation when available stock is zero.
-- [ ] **T032** Create `ACTIVE` reservation with two-minute expiry.
-- [ ] **T033** Increment reserved counter in the same transaction.
-- [ ] **T034** Add basic success/failure integration tests.
+- [x] **T030** Implement reserve transaction.
+- [x] **T031** Reject reservation when available stock is zero.
+- [x] **T032** Create `ACTIVE` reservation with two-minute expiry.
+- [x] **T033** Increment reserved counter in the same transaction.
+- [x] **T034** Add basic success/failure integration tests.
 
 ## Phase 4 — Concurrency first
 
-- [ ] **T040** Add concurrency test issuing 500 parallel reserve requests against stock = 1.
-- [ ] **T041** Assert exactly 1 success and 499 failures.
-- [ ] **T042** Assert `reserved_stock = 1`, `sold_stock = 0`, `available_stock = 0`.
-- [ ] **T043** Verify no transaction path can bypass the inventory lock.
+- [x] **T040** Add concurrency test issuing 500 parallel reserve requests against stock = 1.
+- [x] **T041** Assert exactly 1 success and 499 failures.
+- [x] **T042** Assert `reserved_stock = 1`, `sold_stock = 0`, `available_stock = 0`.
+- [x] **T043** Verify no transaction path can bypass the inventory lock.
 
 **Checkpoint:** Do not proceed to optional React work until T040–T043 pass reliably.
 
