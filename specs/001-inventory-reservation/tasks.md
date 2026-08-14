@@ -16,11 +16,11 @@ Tasks are ordered to validate the hardest requirement—concurrency—before opt
 
 ## Phase 1 — Relational model
 
-- [ ] **T010** Create `products` migration.
-- [ ] **T011** Create `inventories` migration with capacity CHECK constraint.
-- [ ] **T012** Create `reservations` migration with lifecycle status constraint.
-- [ ] **T013** Add indexes for product/status and active expiry lookup.
-- [ ] **T014** Add seed helper for a product with configurable stock.
+- [x] **T010** Create `products` migration.
+- [x] **T011** Create `inventories` migration with capacity CHECK constraint.
+- [x] **T012** Create `reservations` migration with lifecycle status constraint.
+- [x] **T013** Add indexes for product/status and active expiry lookup.
+- [x] **T014** Add seed helper for a product with configurable stock.
 
 ## Phase 2 — Inventory domain
 
