@@ -2,6 +2,218 @@
 
 A TypeScript, Fastify, and PostgreSQL service for holding flash-sale inventory without overselling. Each reservation holds one item for two minutes and can become `CONFIRMED`, `CANCELLED`, or `EXPIRED`. A small React client is included as a local demonstration surface; PostgreSQL remains the concurrency authority.
 
+## Submission Notes
+
+### Approach
+
+I approached the challenge as a concurrency and state-consistency problem rather than only a CRUD exercise.
+
+The implementation was developed progressively around the three levels described in the challenge:
+
+1. establish the inventory and reservation domain rules;
+2. implement the reservation lifecycle and expiry behavior;
+3. make stock mutations safe under concurrent access and verify that behavior against a real relational database.
+
+The central invariant is:
+
+```text
+available_stock = total_stock - sold_stock - reserved_stock
+```
+
+and the system must always preserve:
+
+```text
+reserved_stock + sold_stock <= total_stock
+```
+
+I kept business workflow inside `ReservationService`, database-specific concurrency behavior inside the PostgreSQL persistence adapter, HTTP concerns at the transport boundary, and the React application as an optional demonstration client rather than part of the inventory authority.
+
+### Requirements Traceability
+
+| Challenge requirement                      | Implementation                                                |
+| ------------------------------------------ | ------------------------------------------------------------- |
+| Reserve an available item                  | `ReservationService.reserve()`                                |
+| Reject reservation when unavailable        | `OutOfStockError`                                             |
+| Two-minute temporary hold                  | Reservation TTL defaults to 2 minutes                         |
+| ACTIVE reservation                         | `ACTIVE` state                                                |
+| Confirm purchase                           | `ACTIVE → CONFIRMED`, reserved stock moves to sold stock      |
+| Cancel reservation                         | `ACTIVE → CANCELLED`, reserved stock is released              |
+| Automatically release expired reservations | Lazy expiry plus periodic expiry worker                       |
+| Confirmed purchases cannot be reversed     | Terminal-state validation                                     |
+| Prevent overselling                        | PostgreSQL row-level locking and database capacity constraint |
+| 500 requests against stock 1               | Concurrency test requires exactly 1 success and 499 failures  |
+
+### Design Decisions
+
+#### PostgreSQL as the concurrency authority
+
+I used PostgreSQL row-level pessimistic locking with `SELECT ... FOR UPDATE` around stock-mutating operations.
+
+A process-local JavaScript mutex would protect only a single Node.js process. PostgreSQL provides a shared concurrency boundary if the API runs with multiple workers or application instances.
+
+The inventory row is therefore treated as the serialization point for reservation decisions.
+
+The database also independently enforces the inventory-capacity invariant so correctness does not depend solely on application logic.
+
+#### Consistent lock ordering
+
+Reservation creation locks the inventory row.
+
+Confirmation and cancellation first identify the reservation's immutable product, then lock:
+
+```text
+inventory → reservation
+```
+
+Using a consistent locking order reduces the risk of deadlocks between concurrent lifecycle operations.
+
+#### Expiry strategy
+
+Expiry uses two complementary mechanisms:
+
+* **Lazy expiry** before a new availability decision, which provides the correctness path even if no worker has run recently.
+* **Periodic cleanup**, which keeps stale reservations and read models reasonably current when no reservation traffic occurs.
+
+Both use the same transactional inventory-locking path.
+
+#### Dependency boundaries
+
+Business logic depends on small abstractions such as the reservation persistence contract and an injectable clock rather than directly depending on PostgreSQL or system time.
+
+This keeps domain behavior independently testable while leaving transaction and locking concerns in the infrastructure layer.
+
+I intentionally avoided introducing a dependency-injection framework because constructor dependency injection is sufficient for the size of this application.
+
+### Assumptions
+
+* A reservation represents one unit of a product.
+* Reservation ownership is represented by a supplied user UUID; authentication and authorization are outside the challenge scope.
+* A confirmed reservation represents a completed purchase and is terminal.
+* Cancelled and expired reservations are also terminal.
+* The two-minute reservation period begins when the reservation is created.
+* Reaching `expires_at` means the reservation is already expired.
+* Product and inventory creation are administrative/setup concerns rather than part of the reservation API.
+* The React application is a demonstration surface only; the API and database remain authoritative.
+
+#### Level 1 in-memory requirement
+
+The challenge introduces in-memory inventory as part of Level 1.
+
+I interpreted this as the initial implementation stage rather than a constraint on the completed Level 3 architecture. The final implementation uses PostgreSQL as the system of record because this preserves concurrency correctness across multiple Node.js processes or application instances while still implementing the same inventory rules introduced at Level 1.
+
+### Trade-offs
+
+#### PostgreSQL locking vs. in-process locking
+
+PostgreSQL introduces infrastructure and transaction overhead compared with an in-memory mutex, but it provides correctness across process and instance boundaries.
+
+For a flash-sale-style scenario, I preferred correctness at the system of record over the simpler process-local implementation.
+
+#### Materialized inventory counters
+
+`reserved_stock` and `sold_stock` are maintained on the inventory row instead of calculating all availability from the reservation table for every request.
+
+This makes the availability decision cheap while introducing the responsibility of updating reservation state and inventory counters atomically.
+
+Database constraints and integration tests protect this relationship.
+
+#### Lazy expiry plus worker
+
+A background worker alone would make correctness dependent on scheduling frequency and worker availability.
+
+Lazy expiry ensures an expired reservation cannot continue blocking stock when another customer attempts to reserve it. The worker is therefore primarily for timely cleanup rather than correctness.
+
+#### Scope
+
+I intentionally did not introduce Redis/distributed locks, queues, Kubernetes, event sourcing, authentication, or a separate inventory service. Those could be useful at larger scale, but they would add complexity without being necessary to demonstrate the challenge's core concurrency requirements.
+
+The React application is similarly kept optional so the backend remains independently runnable and testable.
+
+## AI-Assisted Development
+
+AI tools were used deliberately as part of the engineering workflow.
+
+### Tools
+
+* **ChatGPT** — requirements analysis, specification design, architecture discussion, engineering guidelines, and review.
+* **OpenAI Codex** — implementation assistance using the resulting specification and repository engineering guidelines.
+
+### Workflow
+
+I first used ChatGPT to analyze the supplied challenge and convert the requirements into a small Spec-Driven Development structure under:
+
+```text
+specs/001-inventory-reservation/
+```
+
+This produced explicit artifacts covering:
+
+```text
+requirements
+→ implementation plan
+→ relational data model
+→ API contract
+→ implementation tasks
+```
+
+Before implementation, I also created `AGENTS.md` containing the engineering constraints I wanted the coding agent to follow, including:
+
+* SOLID principles
+* Red → Green → Refactor TDD workflow
+* clean-code rules
+* appropriate OOP usage
+* design-pattern restraint
+* systematic debugging practices
+* real-database concurrency testing
+
+Codex was then used to implement the tasks using the specification as the source of truth and `AGENTS.md` as its engineering guidance.
+
+The implementation was therefore substantially AI-assisted rather than limited to autocomplete.
+
+My role throughout the process was to define and challenge the architecture, decide trade-offs, constrain the implementation, review generated changes, reason about the locking strategy and failure cases, and validate the resulting behavior and tests.
+
+I remain responsible for the final submitted code and its engineering decisions.
+
+### AI-Assisted Areas
+
+AI assistance was used across:
+
+* specification and planning documents
+* API and relational-model design
+* backend implementation
+* test implementation
+* React demonstration client
+* Docker/development tooling
+* documentation and code review
+
+The final solution was reviewed against the original challenge requirements rather than treating AI-generated output as correct by default.
+
+## Time Spent
+
+Active working time was approximately **3–4 hours**.
+
+The elapsed time visible between Git commits is longer because I paused development for approximately three hours to attend Friday prayer. That break was not active implementation time.
+
+The challenge itself estimates approximately 2–3 hours; I chose to spend some additional time on reproducible testing, relational concurrency behavior, documentation, and production-oriented packaging.
+
+## Areas I Would Improve With More Time
+
+For a larger production implementation, I would next consider:
+
+* idempotency keys for reservation/confirmation requests;
+* authentication and authorization around reservation ownership;
+* explicit load and soak testing beyond the required 500-request scenario;
+* metrics around lock wait time, reservation success rate, expiry throughput, and database contention;
+* structured tracing across reservation transactions;
+* retry policy for carefully selected transient PostgreSQL failures;
+* database-level lifecycle consistency constraints where practical;
+* pagination/administrative APIs for inventory management;
+* CI execution of the full Docker-backed integration and concurrency suite;
+* stronger API versioning and compatibility guarantees;
+* performance evaluation of the single-inventory-row contention model for extremely hot products.
+
+At significantly higher flash-sale scale, I would also benchmark whether the current row-lock architecture remains appropriate before introducing additional distributed infrastructure.
+
 ## Architecture
 
 ```text
